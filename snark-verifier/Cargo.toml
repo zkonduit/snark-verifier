@@ -17,7 +17,7 @@ halo2_curves = { git = "https://github.com/privacy-scaling-explorations/halo2cur
 rayon = { version = "1.5.3", optional = true }
 
 # system_halo2
-halo2_proofs = { git = "https://github.com/zkonduit/halo2", branch = "ac/send-sync-region", optional = true }
+halo2_proofs = { git = "https://github.com/privacy-scaling-explorations/halo2", rev= "a764a7f", optional=true}
 
 # loader_evm
 sha3 = { version = "0.10", optional = true }
