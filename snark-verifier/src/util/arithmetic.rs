@@ -91,6 +91,7 @@ pub fn root_of_unity<F: PrimeField>(k: usize) -> F {
 
 /// Rotation on a group.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[cfg_attr(feature = "derive_serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Rotation(pub i32);
 
 impl Rotation {
@@ -118,6 +119,7 @@ impl From<i32> for Rotation {
 
 /// 2-adicity multiplicative domain
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "derive_serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Domain<F: PrimeField> {
     /// Log size of the domain.
     pub k: usize,
@@ -151,8 +153,8 @@ impl<F: PrimeField> Domain<F> {
     pub fn rotate_scalar(&self, scalar: F, rotation: Rotation) -> F {
         match rotation.0.cmp(&0) {
             Ordering::Equal => scalar,
-            Ordering::Greater => scalar * self.gen.pow_vartime(&[rotation.0 as u64]),
-            Ordering::Less => scalar * self.gen_inv.pow_vartime(&[(-rotation.0) as u64]),
+            Ordering::Greater => scalar * self.gen.pow_vartime([rotation.0 as u64]),
+            Ordering::Less => scalar * self.gen_inv.pow_vartime([(-rotation.0) as u64]),
         }
     }
 }

@@ -21,14 +21,14 @@ halo2_proofs = { git = "https://github.com/zkonduit/halo2", branch= "ac/public-c
 
 # loader_evm
 sha3 = { version = "0.10", optional = true }
-bytes = { version = "1.1.0", default-features = false, optional = true }
-primitive-types = { version = "0.12.1", default-features = false, features = ["std"], optional = true }
-rlp = { version = "0.5.2", default-features = false, features = ["std"], optional = true }
-revm = { version = "= 2.3.1", optional = true }
+revm = { version = "3.3.0", optional = true }
 
 # loader_halo2
 halo2_wrong_ecc = { git = "https://github.com/zkonduit/halo2wrong", branch = "ac/send-sync-region", package = "ecc", optional = true }
 poseidon = { git = "https://github.com/privacy-scaling-explorations/poseidon", tag = "v2023_04_20", optional = true }
+
+# derive_serde
+serde = { version = "1.0", features = ["derive"], optional = true }
 
 [dev-dependencies]
 rand_chacha = "0.3.1"
@@ -37,17 +37,13 @@ paste = "1.0.7"
 # system_halo2
 halo2_wrong_ecc = { git = "https://github.com/zkonduit/halo2wrong", branch = "ac/send-sync-region", package = "ecc" }
 
-# loader_evm
-crossterm = { version = "0.25" }
-tui = { version = "0.19", default-features = false, features = ["crossterm"] }
-
 [features]
 default = ["loader_evm", "loader_halo2", "system_halo2"]
 
 parallel = ["dep:rayon"]
 
 # loaders
-loader_evm = ["dep:bytes", "dep:sha3", "dep:primitive-types", "dep:rlp", "dep:revm"]
+loader_evm = ["dep:sha3", "dep:revm"]
 loader_halo2 = ["dep:halo2_proofs", "dep:halo2_wrong_ecc", "dep:poseidon"]
 
 # systems
@@ -55,6 +51,7 @@ system_halo2 = ["dep:halo2_proofs"]
 
 # features of halo2
 halo2_circuit_params = ["halo2_proofs?/circuit-params", "halo2_wrong_ecc?/circuit-params"]
+derive_serde = ["dep:serde"]
 
 [[example]]
 name = "evm-verifier"
