@@ -11,13 +11,14 @@ num-integer = "0.1.45"
 num-traits = "0.2.15"
 rand = "0.8"
 hex = "0.4"
-halo2_curves = { git = "https://github.com/privacy-scaling-explorations/halo2curves", tag = "0.3.2", package = "halo2curves" }
+halo2_curves = { git = "https://github.com/privacy-scaling-explorations/halo2curves", rev = "2f322219b39b67da8979bf2b014b31145e7872b0", package = "halo2curves", features = ["derive_serde"] }
+
 
 # parallel
 rayon = { version = "1.5.3", optional = true }
 
 # system_halo2
-halo2_proofs = { git = "https://github.com/zkonduit/halo2", branch= "ac/public-cells", optional=true}
+halo2_proofs = { git = "https://github.com/zkonduit/halo2", branch= "ac/update-h2curves", optional=true}
 
 # loader_evm
 sha3 = { version = "0.10", optional = true }
@@ -25,6 +26,7 @@ revm = { version = "3.3.0", optional = true }
 
 # loader_halo2
 halo2_wrong_ecc = { git = "https://github.com/zkonduit/halo2wrong", branch = "ac/send-sync-region", package = "ecc", optional = true }
+# halo2_wrong_ecc = { git = "https://github.com/zkonduit/halo2wrong", branch = "ac/send-sync-region", package = "ecc", optional = true }
 poseidon = { git = "https://github.com/privacy-scaling-explorations/poseidon", tag = "v2023_04_20", optional = true }
 
 # derive_serde
@@ -36,6 +38,7 @@ paste = "1.0.7"
 
 # system_halo2
 halo2_wrong_ecc = { git = "https://github.com/zkonduit/halo2wrong", branch = "ac/send-sync-region", package = "ecc" }
+
 
 [features]
 default = ["loader_evm", "loader_halo2", "system_halo2"]
