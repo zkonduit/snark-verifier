@@ -18,8 +18,7 @@ halo2_curves = { package ="halo2curves", version = "0.1.0", features = ["derive_
 rayon = { version = "1.5.3", optional = true }
 
 # system_halo2
-# halo2_proofs = { git = "https://github.com/zkonduit/halo2", branch= "ac/update-h2curves", optional=true}
-halo2_proofs = { git = "https://github.com/privacy-scaling-explorations/halo2", rev= "0f000478f42f065353b93d54a8d8c7ff256bcd6b", optional=true }
+halo2_proofs = { git = "https://github.com/zkonduit/halo2", branch= "ac/fix-gadget-diff", optional=true }
 
 # loader_evm
 sha3 = { version = "0.10", optional = true }
