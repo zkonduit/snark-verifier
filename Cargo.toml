@@ -3,3 +3,4 @@ members = [
     "snark-verifier",
     "snark-verifier-sdk"
 ]
+resolver = "2"
