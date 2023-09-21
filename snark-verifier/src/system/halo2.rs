@@ -681,7 +681,7 @@ impl<'a, F: PrimeField> Polynomials<'a, F> {
             })
             .collect_vec();
 
-        let compress = |expressions: &'a [plonk::Expression<F>]| {
+        let compress = |expressions: &[plonk::Expression<F>]| {
             Expression::DistributePowers(
                 expressions
                     .iter()
@@ -700,7 +700,13 @@ impl<'a, F: PrimeField> Polynomials<'a, F> {
                     lookup,
                     (z, z_omega, permuted_input, permuted_input_omega_inv, permuted_table),
                 )| {
-                    let input = compress(lookup.input_expressions());
+                    let input_expressions = lookup
+                        .input_expressions()
+                        .into_iter()
+                        .flat_map(|x| x.clone())
+                        .collect::<Vec<_>>();
+
+                    let input = compress(&input_expressions);
                     let table = compress(lookup.table_expressions());
                     iter::empty()
                         .chain(Some(l_0 * (one - z)))
