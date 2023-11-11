@@ -18,7 +18,7 @@ halo2_curves = { package ="halo2curves", version = "0.1.0", features = ["derive_
 rayon = { version = "1.5.3", optional = true }
 
 # system_halo2
-halo2_proofs = { git = "https://github.com/zkonduit/halo2", branch= "ac/more-informative-errors", optional=true }
+halo2_proofs = { git = "https://github.com/zkonduit/halo2", ref= "3d7b5e61b3052680ccb279e05bdcc21dd8a8fedf", optional=true }
 
 # loader_evm
 sha3 = { version = "0.10", optional = true }
