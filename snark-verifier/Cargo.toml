@@ -18,7 +18,7 @@ halo2_curves = { package ="halo2curves", version = "0.1.0", features = ["derive_
 rayon = { version = "1.5.3", optional = true }
 
 # system_halo2
-halo2_proofs = { git = "https://github.com/zkonduit/halo2", ref= "3d7b5e61b3052680ccb279e05bdcc21dd8a8fedf", optional=true }
+halo2_proofs = { git = "https://github.com/zkonduit/halo2", branch = "ac/lookup-modularity", optional=true }
 
 # loader_evm
 sha3 = { version = "0.10", optional = true }
@@ -43,7 +43,7 @@ halo2_wrong_ecc = { git = "https://github.com/zkonduit/halo2wrong", branch = "ac
 default = ["loader_evm", "loader_halo2", "system_halo2"]
 
 parallel = ["dep:rayon"]
-
+mv-lookup = ["halo2_proofs?/mv-lookup"]
 # loaders
 loader_evm = ["dep:sha3", "dep:revm"]
 loader_halo2 = ["dep:halo2_proofs", "dep:halo2_wrong_ecc", "dep:poseidon"]
