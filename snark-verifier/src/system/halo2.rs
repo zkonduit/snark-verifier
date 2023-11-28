@@ -288,7 +288,7 @@ impl<'a, F: PrimeField> Polynomials<'a, F> {
                 num_lookup_phi: cs.lookups().len(),
             }
         }
-        #[cfg(feature = "mv-lookup")]
+        #[cfg(not(feature = "mv-lookup"))]
         {
             Self {
                 cs,
