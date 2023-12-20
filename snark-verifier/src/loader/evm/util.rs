@@ -3,7 +3,7 @@ use crate::{
     util::{arithmetic::PrimeField, Itertools},
 };
 use std::{
-    io::Write,
+    io::{self, Write},
     iter,
     process::{Command, Stdio},
 };
@@ -101,16 +101,24 @@ pub fn estimate_gas(cost: Cost) -> usize {
     intrinsic_cost + calldata_cost + ec_operation_cost
 }
 
-/// Compile given yul `code` into deployment bytecode.
-pub fn compile_yul(code: &str) -> Vec<u8> {
-    let mut cmd = Command::new("solc")
+/// Compile given Solidity `code` into deployment bytecode.
+pub fn compile_solidity(code: &str) -> Vec<u8> {
+    let mut cmd = match Command::new("solc")
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .arg("--bin")
-        .arg("--yul")
         .arg("-")
         .spawn()
-        .unwrap();
+    {
+        Ok(cmd) => cmd,
+        Err(err) if err.kind() == io::ErrorKind::NotFound => {
+            panic!("Command 'solc' not found");
+        }
+        Err(err) => {
+            panic!("Failed to spawn cmd with command 'solc':\n{err}");
+        }
+    };
+
     cmd.stdin
         .take()
         .unwrap()
