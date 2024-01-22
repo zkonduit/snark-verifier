@@ -1,9 +1,14 @@
+use halo2_curves::CurveAffine;
+
 use crate::{pcs::kzg::KzgSuccinctVerifyingKey, util::arithmetic::MultiMillerLoop};
 use std::marker::PhantomData;
 
 /// KZG deciding key.
 #[derive(Debug, Clone, Copy)]
-pub struct KzgDecidingKey<M: MultiMillerLoop> {
+pub struct KzgDecidingKey<M: MultiMillerLoop>
+where
+    M::G1Affine: CurveAffine,
+{
     /// KZG succinct verifying key.
     pub svk: KzgSuccinctVerifyingKey<M::G1Affine>,
     /// Generator on G2.
@@ -13,7 +18,10 @@ pub struct KzgDecidingKey<M: MultiMillerLoop> {
     _marker: PhantomData<M>,
 }
 
-impl<M: MultiMillerLoop> KzgDecidingKey<M> {
+impl<M: MultiMillerLoop> KzgDecidingKey<M>
+where
+    M::G1Affine: CurveAffine,
+{
     /// Initialize a [`KzgDecidingKey`]
     pub fn new(
         svk: impl Into<KzgSuccinctVerifyingKey<M::G1Affine>>,
@@ -29,19 +37,27 @@ impl<M: MultiMillerLoop> KzgDecidingKey<M> {
     }
 }
 
-impl<M: MultiMillerLoop> From<(M::G1Affine, M::G2Affine, M::G2Affine)> for KzgDecidingKey<M> {
+impl<M: MultiMillerLoop> From<(M::G1Affine, M::G2Affine, M::G2Affine)> for KzgDecidingKey<M>
+where
+    M::G1Affine: CurveAffine,
+{
     fn from((g1, g2, s_g2): (M::G1Affine, M::G2Affine, M::G2Affine)) -> KzgDecidingKey<M> {
         KzgDecidingKey::new(g1, g2, s_g2)
     }
 }
 
-impl<M: MultiMillerLoop> AsRef<KzgSuccinctVerifyingKey<M::G1Affine>> for KzgDecidingKey<M> {
+impl<M: MultiMillerLoop> AsRef<KzgSuccinctVerifyingKey<M::G1Affine>> for KzgDecidingKey<M>
+where
+    M::G1Affine: CurveAffine,
+{
     fn as_ref(&self) -> &KzgSuccinctVerifyingKey<M::G1Affine> {
         &self.svk
     }
 }
 
 mod native {
+    use halo2_curves::CurveAffine;
+
     use crate::{
         loader::native::NativeLoader,
         pcs::{
@@ -59,7 +75,8 @@ mod native {
     impl<M, MOS> AccumulationDecider<M::G1Affine, NativeLoader> for KzgAs<M, MOS>
     where
         M: MultiMillerLoop,
-        M::Scalar: PrimeField,
+        M::G1Affine: CurveAffine,
+        M::Fr: PrimeField,
         MOS: Clone + Debug,
     {
         type DecidingKey = KzgDecidingKey<M>;
@@ -113,7 +130,10 @@ mod evm {
     impl<M, MOS> AccumulationDecider<M::G1Affine, Rc<EvmLoader>> for KzgAs<M, MOS>
     where
         M: MultiMillerLoop,
-        M::Scalar: PrimeField<Repr = [u8; 0x20]>,
+        M::G1Affine: CurveAffine<Repr = [u8; 0x20], ScalarExt = M::Fr>,
+        <M::G1Affine as CurveAffine>::ScalarExt: PrimeField<Repr = [u8; 0x20]>,
+        M::G2Affine: CurveAffine,
+        M::Fr: PrimeField<Repr = [u8; 0x20]>,
         MOS: Clone + Debug,
     {
         type DecidingKey = KzgDecidingKey<M>;
@@ -162,7 +182,7 @@ mod evm {
                 loader.code_mut().runtime_append(code);
                 let challenge = loader.scalar(Value::Memory(challenge_ptr));
 
-                let powers_of_challenge = LoadedScalar::<M::Scalar>::powers(&challenge, lhs.len());
+                let powers_of_challenge = LoadedScalar::<M::Fr>::powers(&challenge, lhs.len());
                 let [lhs, rhs] = [lhs, rhs].map(|msms| {
                     msms.iter()
                         .zip(powers_of_challenge.iter())

@@ -11,14 +11,14 @@ num-integer = "0.1.45"
 num-traits = "0.2.15"
 rand = "0.8"
 hex = "0.4"
-halo2_curves = { package ="halo2curves", version = "0.1.0", features = ["derive_serde"] }
+halo2_curves = { package ="halo2curves", version = "0.6.0", features = ["derive_serde"] }
 
 
 # parallel
 rayon = { version = "1.5.3", optional = true }
 
 # system_halo2
-halo2_proofs = { git = "https://github.com/zkonduit/halo2", branch = "ac/lookup-modularity", optional=true }
+halo2_proofs = { git = "https://github.com/zkonduit/halo2", branch = "main", optional=true }
 
 # loader_evm
 sha3 = { version = "0.10", optional = true }
@@ -58,11 +58,4 @@ halo2_circuit_params = [
 ]
 derive_serde = ["dep:serde"]
 
-[[example]]
-name = "evm-verifier"
-required-features = ["loader_evm", "system_halo2"]
-
-[[example]]
-name = "evm-verifier-with-accumulator"
-required-features = ["loader_halo2", "loader_evm", "system_halo2"]
 

@@ -3,7 +3,7 @@
 use crate::{
     util::{
         arithmetic::{root_of_unity, CurveAffine, Domain, FromUniformBytes, PrimeField, Rotation},
-        izip, Itertools,
+        Itertools,
     },
     verifier::plonk::protocol::{
         CommonPolynomial, Expression, InstanceCommittingKey, PlonkProtocol, Query,
