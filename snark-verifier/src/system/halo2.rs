@@ -24,6 +24,9 @@ pub mod transcript;
 #[cfg(test)]
 pub(crate) mod test;
 
+#[cfg(feature = "mv-lookup")]
+use itertools::izip;
+
 /// Configuration for converting a [`VerifyingKey`] of [`halo2_proofs`] into
 /// [`PlonkProtocol`].
 #[derive(Clone, Debug, Default)]
