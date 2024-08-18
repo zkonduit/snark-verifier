@@ -4,3 +4,6 @@ members = [
     "snark-verifier-sdk"
 ]
 resolver = "2"
+
+[patch.'https://github.com/zkonduit/halo2']
+halo2_proofs = { git = "https://github.com/zkonduit/halo2#38abade26078496aa4d8738b967b0e7fa5d9505c", rev = "38abade26078496aa4d8738b967b0e7fa5d9505c" }

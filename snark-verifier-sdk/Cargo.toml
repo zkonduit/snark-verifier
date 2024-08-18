@@ -20,7 +20,7 @@ ark-std = { version = "0.3.0", features = ["print-trace"], optional = true }
 snark-verifier = { path = "../snark-verifier", default-features = false }
 
 # system_halo2
-halo2_proofs = { git = "https://github.com/zkonduit/halo2", branch = "main" }
+halo2_proofs = { git = "https://github.com/zkonduit/halo2", rev = "38abade26078496aa4d8738b967b0e7fa5d9505c" }
 halo2curves = { package ="halo2curves", version = "0.6.0", features = ["derive_serde"] }
 
 # loader_halo2

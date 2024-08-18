@@ -102,7 +102,7 @@ mod evm {
         for LimbsEncoding<LIMBS, BITS>
     where
         C: CurveAffine,
-        C::Scalar: PrimeField<Repr = [u8; 0x20]>,
+        C::Scalar: PrimeField<Repr = halo2_proofs::halo2curves::serde::Repr<32>>,
     {
         type Accumulator = KzgAccumulator<C, Rc<EvmLoader>>;
 
