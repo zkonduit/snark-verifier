@@ -10,7 +10,7 @@ use std::{
     cmp::max,
     collections::{BTreeMap, BTreeSet},
     fmt::Debug,
-    iter::{self, Sum},
+    iter::{self, Product, Sum},
     ops::{Add, Mul, Neg, Sub},
 };
 
@@ -502,10 +502,17 @@ impl<F: Clone> Neg for &Expression<F> {
     }
 }
 
-impl<F: Clone + Default> Sum for Expression<F> {
+impl<F: Field> Sum for Expression<F> {
     fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
         iter.reduce(|acc, item| acc + item)
-            .unwrap_or_else(|| Expression::Constant(F::default()))
+            .unwrap_or_else(|| Expression::Constant(F::ZERO))
+    }
+}
+
+impl<F: Field> Product for Expression<F> {
+    fn product<I: Iterator<Item = Self>>(iter: I) -> Self {
+        iter.reduce(|acc, item| acc * item)
+            .unwrap_or_else(|| Expression::Constant(F::ONE))
     }
 }
 

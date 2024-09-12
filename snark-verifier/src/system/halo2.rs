@@ -24,6 +24,9 @@ pub mod transcript;
 #[cfg(test)]
 pub(crate) mod test;
 
+#[cfg(feature = "mv-lookup")]
+use itertools::izip;
+
 /// Configuration for converting a [`VerifyingKey`] of [`halo2_proofs`] into
 /// [`PlonkProtocol`].
 #[derive(Clone, Debug, Default)]
@@ -187,6 +190,27 @@ impl From<poly::Rotation> for Rotation {
     }
 }
 
+#[cfg(feature = "mv-lookup")]
+struct Polynomials<'a, F: PrimeField> {
+    cs: &'a ConstraintSystem<F>,
+    zk: bool,
+    query_instance: bool,
+    num_proof: usize,
+    degree: usize,
+    num_fixed: usize,
+    num_permutation_fixed: usize,
+    num_instance: Vec<usize>,
+    num_advice: Vec<usize>,
+    num_challenge: Vec<usize>,
+    advice_index: Vec<usize>,
+    challenge_index: Vec<usize>,
+    num_lookup_m: usize,
+    permutation_chunk_size: usize,
+    num_permutation_z: usize,
+    num_lookup_phi: usize,
+}
+
+#[cfg(not(feature = "mv-lookup"))]
 struct Polynomials<'a, F: PrimeField> {
     cs: &'a ConstraintSystem<F>,
     zk: bool,
@@ -243,27 +267,53 @@ impl<'a, F: PrimeField> Polynomials<'a, F> {
         let (num_challenge, challenge_index) = remapping(cs.challenge_phase());
         assert_eq!(num_advice.iter().sum::<usize>(), cs.num_advice_columns());
         assert_eq!(num_challenge.iter().sum::<usize>(), cs.num_challenges());
-
-        Self {
-            cs,
-            zk,
-            query_instance,
-            num_proof,
-            degree,
-            num_fixed: cs.num_fixed_columns(),
-            num_permutation_fixed: cs.permutation().get_columns().len(),
-            num_instance,
-            num_advice,
-            num_challenge,
-            advice_index,
-            challenge_index,
-            num_lookup_permuted: 2 * cs.lookups().len(),
-            permutation_chunk_size,
-            num_permutation_z: Integer::div_ceil(
-                &cs.permutation().get_columns().len(),
-                &permutation_chunk_size,
-            ),
-            num_lookup_z: cs.lookups().len(),
+        #[cfg(feature = "mv-lookup")]
+        {
+            Self {
+                cs,
+                zk,
+                query_instance,
+                num_proof,
+                degree,
+                num_fixed: cs.num_fixed_columns(),
+                num_permutation_fixed: cs.permutation().get_columns().len(),
+                num_instance,
+                num_advice,
+                num_challenge,
+                advice_index,
+                challenge_index,
+                num_lookup_m: cs.lookups().len(),
+                permutation_chunk_size,
+                num_permutation_z: Integer::div_ceil(
+                    &cs.permutation().get_columns().len(),
+                    &permutation_chunk_size,
+                ),
+                num_lookup_phi: cs.lookups().len(),
+            }
+        }
+        #[cfg(not(feature = "mv-lookup"))]
+        {
+            Self {
+                cs,
+                zk,
+                query_instance,
+                num_proof,
+                degree,
+                num_fixed: cs.num_fixed_columns(),
+                num_permutation_fixed: cs.permutation().get_columns().len(),
+                num_instance,
+                num_advice,
+                num_challenge,
+                advice_index,
+                challenge_index,
+                num_lookup_permuted: 2 * cs.lookups().len(),
+                permutation_chunk_size,
+                num_permutation_z: Integer::div_ceil(
+                    &cs.permutation().get_columns().len(),
+                    &permutation_chunk_size,
+                ),
+                num_lookup_z: cs.lookups().len(),
+            }
         }
     }
 
@@ -278,6 +328,23 @@ impl<'a, F: PrimeField> Polynomials<'a, F> {
             .collect()
     }
 
+    #[cfg(feature = "mv-lookup")]
+    fn num_witness(&self) -> Vec<usize> {
+        iter::empty()
+            .chain(
+                self.num_advice
+                    .clone()
+                    .iter()
+                    .map(|num| self.num_proof * num),
+            )
+            .chain([
+                self.num_proof * self.num_lookup_m,
+                self.num_proof * (self.num_permutation_z + self.num_lookup_phi) + self.zk as usize,
+            ])
+            .collect()
+    }
+
+    #[cfg(not(feature = "mv-lookup"))]
     fn num_witness(&self) -> Vec<usize> {
         iter::empty()
             .chain(
@@ -288,7 +355,7 @@ impl<'a, F: PrimeField> Polynomials<'a, F> {
             )
             .chain([
                 self.num_proof * self.num_lookup_permuted,
-                self.num_proof * (self.num_permutation_z + self.num_lookup_z) + self.zk as usize,
+                self.num_proof * self.num_permutation_z + self.zk as usize,
             ])
             .collect()
     }
@@ -421,6 +488,15 @@ impl<'a, F: PrimeField> Polynomials<'a, F> {
         }
     }
 
+    #[cfg(feature = "mv-lookup")]
+    fn lookup_poly(&'a self, t: usize, i: usize) -> (usize, usize) {
+        let m = self.cs_witness_offset() + (t * self.num_lookup_m + i);
+        let phi =
+            m + self.num_witness()[self.num_advice.len()] + self.num_proof * self.num_permutation_z;
+        (m, phi)
+    }
+
+    #[cfg(not(feature = "mv-lookup"))]
     fn lookup_poly(&'a self, t: usize, i: usize) -> (usize, usize, usize) {
         let permuted_offset = self.cs_witness_offset();
         let z_offset = permuted_offset
@@ -432,6 +508,18 @@ impl<'a, F: PrimeField> Polynomials<'a, F> {
         (z, permuted_input, permuted_table)
     }
 
+    #[cfg(feature = "mv-lookup")]
+    fn lookup_queries<const EVAL: bool>(
+        &'a self,
+        t: usize,
+    ) -> impl IntoIterator<Item = Query> + 'a {
+        (0..self.num_lookup_phi).flat_map(move |i| {
+            let (m, phi) = self.lookup_poly(t, i);
+            [Query::new(phi, 0), Query::new(phi, 1), Query::new(m, 0)]
+        })
+    }
+
+    #[cfg(not(feature = "mv-lookup"))]
     fn lookup_queries<const EVAL: bool>(
         &'a self,
         t: usize,
@@ -659,6 +747,74 @@ impl<'a, F: PrimeField> Polynomials<'a, F> {
             .collect_vec()
     }
 
+    #[cfg(feature = "mv-lookup")]
+    fn lookup_constraints(&'a self, t: usize) -> impl IntoIterator<Item = Expression<F>> + 'a {
+        let l_0 = &Expression::<F>::CommonPolynomial(CommonPolynomial::Lagrange(0));
+        let l_last = &self.l_last();
+        let l_active = &self.l_active();
+        let beta = &self.beta();
+
+        let polys = (0..self.num_lookup_phi)
+            .map(|i| {
+                let (m, phi) = self.lookup_poly(t, i);
+                (
+                    Expression::<F>::Polynomial(Query::new(phi, 0)),
+                    Expression::<F>::Polynomial(Query::new(phi, 1)),
+                    Expression::<F>::Polynomial(Query::new(m, 0)),
+                )
+            })
+            .collect_vec();
+
+        let compress = |expressions: &'a [plonk::Expression<F>]| {
+            Expression::DistributePowers(
+                expressions
+                    .iter()
+                    .map(|expression| self.convert(expression, t))
+                    .collect(),
+                self.theta().into(),
+            )
+        };
+
+        self.cs
+            .lookups()
+            .iter()
+            .zip(polys.iter())
+            .flat_map(|(lookup, (phi, phi_omega, m))| {
+                let inputs = lookup
+                    .input_expressions()
+                    .iter()
+                    .map(|expressions| compress(expressions) + beta)
+                    .collect_vec();
+                let table = &(compress(lookup.table_expressions()) + beta);
+                iter::empty()
+                    .chain(Some(l_0 * phi))
+                    .chain(self.zk.then(|| l_last * phi))
+                    .chain(Some(if self.zk {
+                        let input_prod = &inputs.iter().cloned().product::<Expression<_>>();
+                        let lhs = table * input_prod * (phi_omega - phi);
+                        let rhs = (inputs.len() > 1)
+                            .then(|| {
+                                (0..inputs.len())
+                                    .map(|i| {
+                                        izip!(0.., &inputs)
+                                            .filter_map(|(j, input)| (i != j).then_some(input))
+                                            .cloned()
+                                            .product()
+                                    })
+                                    .sum::<Expression<_>>()
+                                    * table
+                            })
+                            .unwrap_or_else(|| table.clone())
+                            - m * input_prod;
+                        l_active * (lhs - rhs)
+                    } else {
+                        unimplemented!()
+                    }))
+            })
+            .collect_vec()
+    }
+
+    #[cfg(not(feature = "mv-lookup"))]
     fn lookup_constraints(&'a self, t: usize) -> impl IntoIterator<Item = Expression<F>> + 'a {
         let one = &Expression::Constant(F::ONE);
         let l_0 = &Expression::<F>::CommonPolynomial(CommonPolynomial::Lagrange(0));
