@@ -29,7 +29,10 @@ pub struct Halo2Loader<'a, C: CurveAffine, EccChip: EccInstructions<'a, C>> {
     row_meterings: RefCell<Vec<(String, usize)>>,
 }
 
-impl<'a, C: CurveAffine, EccChip: EccInstructions<'a, C>> Halo2Loader<'a, C, EccChip> {
+impl<'a, C: CurveAffine, EccChip: EccInstructions<'a, C>> Halo2Loader<'a, C, EccChip>
+where
+    C::CurveExt: halo2_mpc::CurveExtFromUniformBytes<ScalarExt = C::Scalar>,
+{
     /// Initialize a [`Halo2Loader`] with given [`EccInstructions`] and
     /// [`EccInstructions::Context`].
     pub fn new(ecc_chip: EccChip, ctx: EccChip::Context) -> Rc<Self> {
@@ -55,7 +58,10 @@ impl<'a, C: CurveAffine, EccChip: EccInstructions<'a, C>> Halo2Loader<'a, C, Ecc
     }
 
     /// Returns reference of [`EccInstructions::ScalarChip`].
-    pub fn scalar_chip(&self) -> Ref<EccChip::ScalarChip> {
+    pub fn scalar_chip(&self) -> Ref<EccChip::ScalarChip>
+    where
+        C::CurveExt: halo2_mpc::CurveExtFromUniformBytes<ScalarExt = C::Scalar>,
+    {
         Ref::map(self.ecc_chip(), |ecc_chip| ecc_chip.scalar_chip())
     }
 
@@ -327,7 +333,10 @@ pub struct Scalar<'a, C: CurveAffine, EccChip: EccInstructions<'a, C>> {
     value: RefCell<Value<C::Scalar, EccChip::AssignedScalar>>,
 }
 
-impl<'a, C: CurveAffine, EccChip: EccInstructions<'a, C>> Scalar<'a, C, EccChip> {
+impl<'a, C: CurveAffine, EccChip: EccInstructions<'a, C>> Scalar<'a, C, EccChip>
+where
+    C::CurveExt: halo2_mpc::CurveExtFromUniformBytes<ScalarExt = C::Scalar>,
+{
     /// Returns reference of [`Rc<Halo2Loader>`]
     pub fn loader(&self) -> &Rc<Halo2Loader<'a, C, EccChip>> {
         &self.loader
@@ -367,6 +376,8 @@ impl<'a, C: CurveAffine, EccChip: EccInstructions<'a, C>> PartialEq for Scalar<'
 
 impl<'a, C: CurveAffine, EccChip: EccInstructions<'a, C>> LoadedScalar<C::Scalar>
     for Scalar<'a, C, EccChip>
+where
+    C::CurveExt: halo2_mpc::CurveExtFromUniformBytes<ScalarExt = C::Scalar>,
 {
     type Loader = Rc<Halo2Loader<'a, C, EccChip>>;
 
@@ -383,13 +394,19 @@ impl<'a, C: CurveAffine, EccChip: EccInstructions<'a, C>> Debug for Scalar<'a, C
     }
 }
 
-impl<'a, C: CurveAffine, EccChip: EccInstructions<'a, C>> FieldOps for Scalar<'a, C, EccChip> {
+impl<'a, C: CurveAffine, EccChip: EccInstructions<'a, C>> FieldOps for Scalar<'a, C, EccChip>
+where
+    C::CurveExt: halo2_mpc::CurveExtFromUniformBytes<ScalarExt = C::Scalar>,
+{
     fn invert(&self) -> Option<Self> {
         Some(self.loader.invert(self))
     }
 }
 
-impl<'a, C: CurveAffine, EccChip: EccInstructions<'a, C>> Add for Scalar<'a, C, EccChip> {
+impl<'a, C: CurveAffine, EccChip: EccInstructions<'a, C>> Add for Scalar<'a, C, EccChip>
+where
+    C::CurveExt: halo2_mpc::CurveExtFromUniformBytes<ScalarExt = C::Scalar>,
+{
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self::Output {
@@ -397,7 +414,10 @@ impl<'a, C: CurveAffine, EccChip: EccInstructions<'a, C>> Add for Scalar<'a, C, 
     }
 }
 
-impl<'a, C: CurveAffine, EccChip: EccInstructions<'a, C>> Sub for Scalar<'a, C, EccChip> {
+impl<'a, C: CurveAffine, EccChip: EccInstructions<'a, C>> Sub for Scalar<'a, C, EccChip>
+where
+    C::CurveExt: halo2_mpc::CurveExtFromUniformBytes<ScalarExt = C::Scalar>,
+{
     type Output = Self;
 
     fn sub(self, rhs: Self) -> Self::Output {
@@ -405,7 +425,10 @@ impl<'a, C: CurveAffine, EccChip: EccInstructions<'a, C>> Sub for Scalar<'a, C, 
     }
 }
 
-impl<'a, C: CurveAffine, EccChip: EccInstructions<'a, C>> Mul for Scalar<'a, C, EccChip> {
+impl<'a, C: CurveAffine, EccChip: EccInstructions<'a, C>> Mul for Scalar<'a, C, EccChip>
+where
+    C::CurveExt: halo2_mpc::CurveExtFromUniformBytes<ScalarExt = C::Scalar>,
+{
     type Output = Self;
 
     fn mul(self, rhs: Self) -> Self::Output {
@@ -413,7 +436,10 @@ impl<'a, C: CurveAffine, EccChip: EccInstructions<'a, C>> Mul for Scalar<'a, C, 
     }
 }
 
-impl<'a, C: CurveAffine, EccChip: EccInstructions<'a, C>> Neg for Scalar<'a, C, EccChip> {
+impl<'a, C: CurveAffine, EccChip: EccInstructions<'a, C>> Neg for Scalar<'a, C, EccChip>
+where
+    C::CurveExt: halo2_mpc::CurveExtFromUniformBytes<ScalarExt = C::Scalar>,
+{
     type Output = Self;
 
     fn neg(self) -> Self::Output {
@@ -423,6 +449,8 @@ impl<'a, C: CurveAffine, EccChip: EccInstructions<'a, C>> Neg for Scalar<'a, C, 
 
 impl<'a, 'b, C: CurveAffine, EccChip: EccInstructions<'a, C>> Add<&'b Self>
     for Scalar<'a, C, EccChip>
+where
+    C::CurveExt: halo2_mpc::CurveExtFromUniformBytes<ScalarExt = C::Scalar>,
 {
     type Output = Self;
 
@@ -433,6 +461,8 @@ impl<'a, 'b, C: CurveAffine, EccChip: EccInstructions<'a, C>> Add<&'b Self>
 
 impl<'a, 'b, C: CurveAffine, EccChip: EccInstructions<'a, C>> Sub<&'b Self>
     for Scalar<'a, C, EccChip>
+where
+    C::CurveExt: halo2_mpc::CurveExtFromUniformBytes<ScalarExt = C::Scalar>,
 {
     type Output = Self;
 
@@ -443,6 +473,8 @@ impl<'a, 'b, C: CurveAffine, EccChip: EccInstructions<'a, C>> Sub<&'b Self>
 
 impl<'a, 'b, C: CurveAffine, EccChip: EccInstructions<'a, C>> Mul<&'b Self>
     for Scalar<'a, C, EccChip>
+where
+    C::CurveExt: halo2_mpc::CurveExtFromUniformBytes<ScalarExt = C::Scalar>,
 {
     type Output = Self;
 
@@ -451,19 +483,28 @@ impl<'a, 'b, C: CurveAffine, EccChip: EccInstructions<'a, C>> Mul<&'b Self>
     }
 }
 
-impl<'a, C: CurveAffine, EccChip: EccInstructions<'a, C>> AddAssign for Scalar<'a, C, EccChip> {
+impl<'a, C: CurveAffine, EccChip: EccInstructions<'a, C>> AddAssign for Scalar<'a, C, EccChip>
+where
+    C::CurveExt: halo2_mpc::CurveExtFromUniformBytes<ScalarExt = C::Scalar>,
+{
     fn add_assign(&mut self, rhs: Self) {
         *self = Halo2Loader::add(&self.loader, self, &rhs)
     }
 }
 
-impl<'a, C: CurveAffine, EccChip: EccInstructions<'a, C>> SubAssign for Scalar<'a, C, EccChip> {
+impl<'a, C: CurveAffine, EccChip: EccInstructions<'a, C>> SubAssign for Scalar<'a, C, EccChip>
+where
+    C::CurveExt: halo2_mpc::CurveExtFromUniformBytes<ScalarExt = C::Scalar>,
+{
     fn sub_assign(&mut self, rhs: Self) {
         *self = Halo2Loader::sub(&self.loader, self, &rhs)
     }
 }
 
-impl<'a, C: CurveAffine, EccChip: EccInstructions<'a, C>> MulAssign for Scalar<'a, C, EccChip> {
+impl<'a, C: CurveAffine, EccChip: EccInstructions<'a, C>> MulAssign for Scalar<'a, C, EccChip>
+where
+    C::CurveExt: halo2_mpc::CurveExtFromUniformBytes<ScalarExt = C::Scalar>,
+{
     fn mul_assign(&mut self, rhs: Self) {
         *self = Halo2Loader::mul(&self.loader, self, &rhs)
     }
@@ -471,6 +512,8 @@ impl<'a, C: CurveAffine, EccChip: EccInstructions<'a, C>> MulAssign for Scalar<'
 
 impl<'a, 'b, C: CurveAffine, EccChip: EccInstructions<'a, C>> AddAssign<&'b Self>
     for Scalar<'a, C, EccChip>
+where
+    C::CurveExt: halo2_mpc::CurveExtFromUniformBytes<ScalarExt = C::Scalar>,
 {
     fn add_assign(&mut self, rhs: &'b Self) {
         *self = Halo2Loader::add(&self.loader, self, rhs)
@@ -479,6 +522,8 @@ impl<'a, 'b, C: CurveAffine, EccChip: EccInstructions<'a, C>> AddAssign<&'b Self
 
 impl<'a, 'b, C: CurveAffine, EccChip: EccInstructions<'a, C>> SubAssign<&'b Self>
     for Scalar<'a, C, EccChip>
+where
+    C::CurveExt: halo2_mpc::CurveExtFromUniformBytes<ScalarExt = C::Scalar>,
 {
     fn sub_assign(&mut self, rhs: &'b Self) {
         *self = Halo2Loader::sub(&self.loader, self, rhs)
@@ -487,6 +532,8 @@ impl<'a, 'b, C: CurveAffine, EccChip: EccInstructions<'a, C>> SubAssign<&'b Self
 
 impl<'a, 'b, C: CurveAffine, EccChip: EccInstructions<'a, C>> MulAssign<&'b Self>
     for Scalar<'a, C, EccChip>
+where
+    C::CurveExt: halo2_mpc::CurveExtFromUniformBytes<ScalarExt = C::Scalar>,
 {
     fn mul_assign(&mut self, rhs: &'b Self) {
         *self = Halo2Loader::mul(&self.loader, self, rhs)
@@ -501,7 +548,10 @@ pub struct EcPoint<'a, C: CurveAffine, EccChip: EccInstructions<'a, C>> {
     value: RefCell<Value<C, EccChip::AssignedEcPoint>>,
 }
 
-impl<'a, C: CurveAffine, EccChip: EccInstructions<'a, C>> EcPoint<'a, C, EccChip> {
+impl<'a, C: CurveAffine, EccChip: EccInstructions<'a, C>> EcPoint<'a, C, EccChip>
+where
+    C::CurveExt: halo2_mpc::CurveExtFromUniformBytes<ScalarExt = C::Scalar>,
+{
     /// Into [`EccInstructions::AssignedEcPoint`].
     pub fn into_assigned(self) -> EccChip::AssignedEcPoint {
         match self.value.into_inner() {
@@ -535,6 +585,8 @@ impl<'a, C: CurveAffine, EccChip: EccInstructions<'a, C>> PartialEq for EcPoint<
 
 impl<'a, C: CurveAffine, EccChip: EccInstructions<'a, C>> LoadedEcPoint<C>
     for EcPoint<'a, C, EccChip>
+where
+    C::CurveExt: halo2_mpc::CurveExtFromUniformBytes<ScalarExt = C::Scalar>,
 {
     type Loader = Rc<Halo2Loader<'a, C, EccChip>>;
 
@@ -554,6 +606,8 @@ impl<'a, C: CurveAffine, EccChip: EccInstructions<'a, C>> Debug for EcPoint<'a, 
 
 impl<'a, C: CurveAffine, EccChip: EccInstructions<'a, C>> ScalarLoader<C::Scalar>
     for Rc<Halo2Loader<'a, C, EccChip>>
+where
+    C::CurveExt: halo2_mpc::CurveExtFromUniformBytes<ScalarExt = C::Scalar>,
 {
     type LoadedScalar = Scalar<'a, C, EccChip>;
 
@@ -607,6 +661,8 @@ impl<'a, C: CurveAffine, EccChip: EccInstructions<'a, C>> ScalarLoader<C::Scalar
 
 impl<'a, C: CurveAffine, EccChip: EccInstructions<'a, C>> EcPointLoader<C>
     for Rc<Halo2Loader<'a, C, EccChip>>
+where
+    C::CurveExt: halo2_mpc::CurveExtFromUniformBytes<ScalarExt = C::Scalar>,
 {
     type LoadedEcPoint = EcPoint<'a, C, EccChip>;
 
@@ -721,6 +777,8 @@ impl<'a, C: CurveAffine, EccChip: EccInstructions<'a, C>> EcPointLoader<C>
 
 impl<'a, C: CurveAffine, EccChip: EccInstructions<'a, C>> Loader<C>
     for Rc<Halo2Loader<'a, C, EccChip>>
+where
+    C::CurveExt: halo2_mpc::CurveExtFromUniformBytes<ScalarExt = C::Scalar>,
 {
     #[cfg(test)]
     fn start_cost_metering(&self, identifier: &str) {

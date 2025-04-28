@@ -189,6 +189,7 @@ mod halo2 {
         AccumulatorEncoding<C, Rc<Halo2Loader<'a, C, EccChip>>> for LimbsEncoding<LIMBS, BITS>
     where
         C: CurveAffine,
+        C::CurveExt: halo2_mpc::CurveExtFromUniformBytes<ScalarExt = C::Scalar>,
         EccChip: LimbsEncodingInstructions<'a, C, LIMBS, BITS>,
     {
         type Accumulator = KzgAccumulator<C, Rc<Halo2Loader<'a, C, EccChip>>>;
@@ -219,6 +220,8 @@ mod halo2 {
 
         impl<'a, C: CurveAffine, const LIMBS: usize, const BITS: usize>
             LimbsEncodingInstructions<'a, C, LIMBS, BITS> for BaseFieldEccChip<C, LIMBS, BITS>
+        where
+            C::CurveExt: halo2_mpc::CurveExtFromUniformBytes<ScalarExt = C::Scalar>,
         {
             fn assign_ec_point_from_limbs(
                 &self,

@@ -59,6 +59,7 @@ impl<'a, C, R, EccChip, const T: usize, const RATE: usize, const R_F: usize, con
     PoseidonTranscript<C, Rc<Halo2Loader<'a, C, EccChip>>, Value<R>, T, RATE, R_F, R_P>
 where
     C: CurveAffine,
+    C::CurveExt: halo2_mpc::CurveExtFromUniformBytes<ScalarExt = C::Scalar>,
     C::Scalar: FromUniformBytes<64>,
     R: Read,
     EccChip: NativeEncoding<'a, C>,
@@ -96,6 +97,7 @@ where
     C::Scalar: FromUniformBytes<64>,
     R: Read,
     EccChip: NativeEncoding<'a, C>,
+    C::CurveExt: halo2_mpc::CurveExtFromUniformBytes<ScalarExt = C::Scalar>,
 {
     fn loader(&self) -> &Rc<Halo2Loader<'a, C, EccChip>> {
         &self.loader
@@ -140,6 +142,7 @@ where
     C::Scalar: FromUniformBytes<64>,
     R: Read,
     EccChip: NativeEncoding<'a, C>,
+    C::CurveExt: halo2_mpc::CurveExtFromUniformBytes<ScalarExt = C::Scalar>,
 {
     fn read_scalar(&mut self) -> Result<Scalar<'a, C, EccChip>, Error> {
         let scalar = self.stream.as_mut().and_then(|stream| {
@@ -451,6 +454,8 @@ mod halo2_wrong {
 
     impl<'a, C: CurveAffine, const LIMBS: usize, const BITS: usize> NativeEncoding<'a, C>
         for BaseFieldEccChip<C, LIMBS, BITS>
+    where
+        C::CurveExt: halo2_mpc::CurveExtFromUniformBytes<ScalarExt = C::Scalar>,
     {
         fn encode(
             &self,

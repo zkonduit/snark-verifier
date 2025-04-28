@@ -151,6 +151,7 @@ mod halo2 {
     impl<C> PlonkProtocol<C>
     where
         C: CurveAffine,
+        C::CurveExt: halo2_mpc::CurveExtFromUniformBytes<ScalarExt = C::Scalar>,
     {
         /// Loaded `PlonkProtocol` with `preprocessed` and
         /// `transcript_initial_state` loaded as witness, which is useful when

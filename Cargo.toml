@@ -6,4 +6,4 @@ members = [
 resolver = "2"
 
 [patch.'https://github.com/zkonduit/halo2']
-halo2_proofs = { git = "https://github.com/zkonduit/halo2#38abade26078496aa4d8738b967b0e7fa5d9505c", rev = "38abade26078496aa4d8738b967b0e7fa5d9505c" }
+halo2_proofs = { path = "../halo2_mpc_integration/halo2_mpc", package = "halo2_proofs_mpc" }

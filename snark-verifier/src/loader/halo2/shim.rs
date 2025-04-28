@@ -15,7 +15,10 @@ pub trait Context: Debug {
 }
 
 /// Instructions to handle field element operations.
-pub trait IntegerInstructions<'a, F: PrimeField>: Clone + Debug {
+pub trait IntegerInstructions<'a, C: CurveAffine, F: PrimeField>: Clone + Debug
+where
+    C::CurveExt: halo2_mpc::CurveExtFromUniformBytes<ScalarExt = C::Scalar>,
+{
     /// Context.
     type Context: Context;
     /// Assigned cell.
@@ -95,11 +98,14 @@ pub trait EccInstructions<'a, C: CurveAffine>: Clone + Debug {
     /// [`IntegerInstructions`] to handle scalar field operation.
     type ScalarChip: IntegerInstructions<
         'a,
+        C,
         C::Scalar,
         Context = Self::Context,
         AssignedCell = Self::AssignedCell,
         AssignedInteger = Self::AssignedScalar,
-    >;
+    >
+    where
+        C::CurveExt: halo2_mpc::CurveExtFromUniformBytes<ScalarExt = C::Scalar>;
     /// Assigned cell.
     type AssignedCell: Clone + Debug;
     /// Assigned scalar field element.
@@ -108,7 +114,9 @@ pub trait EccInstructions<'a, C: CurveAffine>: Clone + Debug {
     type AssignedEcPoint: Clone + Debug;
 
     /// Returns reference of [`EccInstructions::ScalarChip`].
-    fn scalar_chip(&self) -> &Self::ScalarChip;
+    fn scalar_chip(&self) -> &Self::ScalarChip
+    where
+        C::CurveExt: halo2_mpc::CurveExtFromUniformBytes<ScalarExt = C::Scalar>;
 
     /// Assign a elliptic curve point constant.
     fn assign_constant(
@@ -181,7 +189,9 @@ mod halo2_wrong {
     use rand::rngs::OsRng;
     use std::{iter, ops::Deref};
 
-    impl<'a, F: PrimeField> Context for RegionCtx<'a, F> {
+    impl<'a, C: halo2_mpc::CurveExtFromUniformBytes<ScalarExt = F>, F: PrimeField> Context
+        for RegionCtx<'a, C, F>
+    {
         fn constrain_equal(&mut self, lhs: Cell, rhs: Cell) -> Result<(), Error> {
             self.constrain_equal(lhs, rhs)
         }
@@ -191,8 +201,11 @@ mod halo2_wrong {
         }
     }
 
-    impl<'a, F: PrimeField> IntegerInstructions<'a, F> for MainGate<F> {
-        type Context = RegionCtx<'a, F>;
+    impl<'a, C: CurveAffine<ScalarExt = F>, F: PrimeField> IntegerInstructions<'a, C, F> for MainGate<F>
+    where
+        C::CurveExt: halo2_mpc::CurveExtFromUniformBytes<ScalarExt = C::Scalar>,
+    {
+        type Context = RegionCtx<'a, C::CurveExt, F>;
         type AssignedCell = AssignedCell<F, F>;
         type AssignedInteger = AssignedCell<F, F>;
 
@@ -355,8 +368,10 @@ mod halo2_wrong {
 
     impl<'a, C: CurveAffine, const LIMBS: usize, const BITS: usize> EccInstructions<'a, C>
         for BaseFieldEccChip<C, LIMBS, BITS>
+    where
+        C::CurveExt: halo2_mpc::CurveExtFromUniformBytes<ScalarExt = C::Scalar>,
     {
-        type Context = RegionCtx<'a, C::Scalar>;
+        type Context = RegionCtx<'a, C::CurveExt, C::Scalar>;
         type ScalarChip = MainGate<C::Scalar>;
         type AssignedCell = AssignedCell<C::Scalar, C::Scalar>;
         type AssignedScalar = AssignedCell<C::Scalar, C::Scalar>;

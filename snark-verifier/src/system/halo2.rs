@@ -18,7 +18,7 @@ use halo2_proofs::{
 use num_integer::Integer;
 use std::{io, iter, mem::size_of};
 
-pub mod strategy;
+// pub mod strategy;
 pub mod transcript;
 
 #[cfg(test)]
@@ -95,13 +95,14 @@ impl Config {
 }
 
 /// Convert a [`VerifyingKey`] of [`halo2_proofs`] into [`PlonkProtocol`].
-pub fn compile<'a, C: CurveAffine, P: Params<'a, C>>(
+pub fn compile<'a, C: CurveAffine, P: Params<'a, C::CurveExt>>(
     params: &P,
     vk: &VerifyingKey<C>,
     config: Config,
 ) -> PlonkProtocol<C>
 where
     C::Scalar: FromUniformBytes<64>,
+    C::CurveExt: halo2_mpc::CurveExtFromUniformBytes<ScalarExt = C::Scalar>,
 {
     assert_eq!(vk.get_domain().k(), params.k());
 
@@ -407,6 +408,7 @@ impl<'a, F: PrimeField> Polynomials<'a, F> {
                         .sum::<usize>();
                 self.witness_offset() + phase_offset + t * self.num_advice[advice.phase() as usize]
             }
+            Any::AdviceShared(_) => todo!(),
         };
         Query::new(offset + column_index, rotation.into())
     }
@@ -956,10 +958,13 @@ where
     transcript.0
 }
 
-fn instance_committing_key<'a, C: CurveAffine, P: Params<'a, C>>(
+fn instance_committing_key<'a, C: CurveAffine, P: Params<'a, C::CurveExt>>(
     params: &P,
     len: usize,
-) -> InstanceCommittingKey<C> {
+) -> InstanceCommittingKey<C>
+where
+    C::CurveExt: halo2_mpc::CurveExtFromUniformBytes<ScalarExt = C::Scalar>,
+{
     let buf = {
         let mut buf = Vec::new();
         params.write(&mut buf).unwrap();
