@@ -171,6 +171,7 @@ where
                 AccumulatorStrategy::new(params.verifier_params()),
                 &[instances.as_slice()],
                 &mut transcript_read,
+                0,
             )
             .unwrap(),
         )
