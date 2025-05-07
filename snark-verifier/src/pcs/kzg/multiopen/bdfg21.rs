@@ -27,7 +27,8 @@ pub struct Bdfg21;
 impl<M, L> PolynomialCommitmentScheme<M::G1Affine, L> for KzgAs<M, Bdfg21>
 where
     M: MultiMillerLoop,
-    M::Scalar: PrimeField + Ord,
+    M::G1Affine: CurveAffine<ScalarExt = M::Fr>,
+    M::Fr: PrimeField + Ord,
     L: Loader<M::G1Affine>,
 {
     type VerifyingKey = KzgSuccinctVerifyingKey<M::G1Affine>;
@@ -36,7 +37,7 @@ where
 
     fn read_proof<T>(
         _: &KzgSuccinctVerifyingKey<M::G1Affine>,
-        _: &[Query<M::Scalar>],
+        _: &[Query<M::Fr>],
         transcript: &mut T,
     ) -> Result<Bdfg21Proof<M::G1Affine, L>, Error>
     where
@@ -49,7 +50,7 @@ where
         svk: &KzgSuccinctVerifyingKey<M::G1Affine>,
         commitments: &[Msm<M::G1Affine, L>],
         z: &L::LoadedScalar,
-        queries: &[Query<M::Scalar, L::LoadedScalar>],
+        queries: &[Query<M::Fr, L::LoadedScalar>],
         proof: &Bdfg21Proof<M::G1Affine, L>,
     ) -> Result<Self::Output, Error> {
         let sets = query_sets(queries);
@@ -370,11 +371,11 @@ where
 impl<M> CostEstimation<M::G1Affine> for KzgAs<M, Bdfg21>
 where
     M: MultiMillerLoop,
-    M::Scalar: PrimeField,
+    M::Fr: PrimeField,
 {
-    type Input = Vec<Query<M::Scalar>>;
+    type Input = Vec<Query<M::Fr>>;
 
-    fn estimate_cost(_: &Vec<Query<M::Scalar>>) -> Cost {
+    fn estimate_cost(_: &Vec<Query<M::Fr>>) -> Cost {
         Cost {
             num_commitment: 2,
             num_msm: 2,

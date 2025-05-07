@@ -39,7 +39,7 @@ pub struct EvmTranscript<C: CurveAffine, L: Loader<C>, S, B> {
 impl<C> EvmTranscript<C, Rc<EvmLoader>, usize, MemoryChunk>
 where
     C: CurveAffine,
-    C::Scalar: PrimeField<Repr = [u8; 0x20]>,
+    C::Scalar: PrimeField<Repr = halo2_proofs::halo2curves::serde::Repr<32>>,
 {
     /// Initialize [`EvmTranscript`] given [`Rc<EvmLoader>`] and pre-allocate an
     /// u256 for `transcript_initial_state`.
@@ -76,7 +76,7 @@ where
 impl<C> Transcript<C, Rc<EvmLoader>> for EvmTranscript<C, Rc<EvmLoader>, usize, MemoryChunk>
 where
     C: CurveAffine,
-    C::Scalar: PrimeField<Repr = [u8; 0x20]>,
+    C::Scalar: PrimeField<Repr = halo2_proofs::halo2curves::serde::Repr<32>>,
 {
     fn loader(&self) -> &Rc<EvmLoader> {
         &self.loader
@@ -139,7 +139,7 @@ where
 impl<C> TranscriptRead<C, Rc<EvmLoader>> for EvmTranscript<C, Rc<EvmLoader>, usize, MemoryChunk>
 where
     C: CurveAffine,
-    C::Scalar: PrimeField<Repr = [u8; 0x20]>,
+    C::Scalar: PrimeField<Repr = halo2_proofs::halo2curves::serde::Repr<32>>,
 {
     fn read_scalar(&mut self) -> Result<Scalar, Error> {
         let scalar = self.loader.calldataload_scalar(self.stream);
@@ -175,7 +175,7 @@ where
 impl<C, S> Transcript<C, NativeLoader> for EvmTranscript<C, NativeLoader, S, Vec<u8>>
 where
     C: CurveAffine,
-    C::Scalar: PrimeField<Repr = [u8; 0x20]>,
+    C::Scalar: PrimeField<Repr = halo2_proofs::halo2curves::serde::Repr<32>>,
 {
     fn loader(&self) -> &NativeLoader {
         &native::LOADER
@@ -224,7 +224,7 @@ where
 impl<C, S> TranscriptRead<C, NativeLoader> for EvmTranscript<C, NativeLoader, S, Vec<u8>>
 where
     C: CurveAffine,
-    C::Scalar: PrimeField<Repr = [u8; 0x20]>,
+    C::Scalar: PrimeField<Repr = halo2_proofs::halo2curves::serde::Repr<32>>,
     S: Read,
 {
     fn read_scalar(&mut self) -> Result<C::Scalar, Error> {
@@ -233,7 +233,7 @@ where
             .read_exact(data.as_mut())
             .map_err(|err| Error::Transcript(err.kind(), err.to_string()))?;
         data.reverse();
-        let scalar = C::Scalar::from_repr_vartime(data).ok_or_else(|| {
+        let scalar = C::Scalar::from_repr_vartime(data.into()).ok_or_else(|| {
             Error::Transcript(
                 io::ErrorKind::Other,
                 "Invalid scalar encoding in proof".to_string(),
@@ -289,12 +289,12 @@ where
 pub struct ChallengeEvm<C>(C::Scalar)
 where
     C: CurveAffine,
-    C::Scalar: PrimeField<Repr = [u8; 32]>;
+    C::Scalar: PrimeField<Repr = halo2_proofs::halo2curves::serde::Repr<32>>;
 
 impl<C> EncodedChallenge<C> for ChallengeEvm<C>
 where
     C: CurveAffine,
-    C::Scalar: PrimeField<Repr = [u8; 32]>,
+    C::Scalar: PrimeField<Repr = halo2_proofs::halo2curves::serde::Repr<32>>,
 {
     type Input = [u8; 32];
 
@@ -311,7 +311,7 @@ impl<C, S> halo2_proofs::transcript::Transcript<C, ChallengeEvm<C>>
     for EvmTranscript<C, NativeLoader, S, Vec<u8>>
 where
     C: CurveAffine,
-    C::Scalar: PrimeField<Repr = [u8; 32]>,
+    C::Scalar: PrimeField<Repr = halo2_proofs::halo2curves::serde::Repr<32>>,
 {
     fn squeeze_challenge(&mut self) -> ChallengeEvm<C> {
         ChallengeEvm(Transcript::squeeze_challenge(self))
@@ -338,7 +338,7 @@ impl<C, R: Read> halo2_proofs::transcript::TranscriptRead<C, ChallengeEvm<C>>
     for EvmTranscript<C, NativeLoader, R, Vec<u8>>
 where
     C: CurveAffine,
-    C::Scalar: PrimeField<Repr = [u8; 32]>,
+    C::Scalar: PrimeField<Repr = halo2_proofs::halo2curves::serde::Repr<32>>,
 {
     fn read_point(&mut self) -> io::Result<C> {
         match TranscriptRead::read_ec_point(self) {
@@ -361,7 +361,7 @@ impl<C, R: Read> halo2_proofs::transcript::TranscriptReadBuffer<R, C, ChallengeE
     for EvmTranscript<C, NativeLoader, R, Vec<u8>>
 where
     C: CurveAffine,
-    C::Scalar: PrimeField<Repr = [u8; 32]>,
+    C::Scalar: PrimeField<Repr = halo2_proofs::halo2curves::serde::Repr<32>>,
 {
     fn init(reader: R) -> Self {
         Self::new(reader)
@@ -372,7 +372,7 @@ impl<C, W: Write> halo2_proofs::transcript::TranscriptWrite<C, ChallengeEvm<C>>
     for EvmTranscript<C, NativeLoader, W, Vec<u8>>
 where
     C: CurveAffine,
-    C::Scalar: PrimeField<Repr = [u8; 32]>,
+    C::Scalar: PrimeField<Repr = halo2_proofs::halo2curves::serde::Repr<32>>,
 {
     fn write_point(&mut self, ec_point: C) -> io::Result<()> {
         halo2_proofs::transcript::Transcript::<C, ChallengeEvm<C>>::common_point(self, ec_point)?;
@@ -402,7 +402,7 @@ impl<C, W: Write> halo2_proofs::transcript::TranscriptWriterBuffer<W, C, Challen
     for EvmTranscript<C, NativeLoader, W, Vec<u8>>
 where
     C: CurveAffine,
-    C::Scalar: PrimeField<Repr = [u8; 32]>,
+    C::Scalar: PrimeField<Repr = halo2_proofs::halo2curves::serde::Repr<32>>,
 {
     fn init(writer: W) -> Self {
         Self::new(writer)

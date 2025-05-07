@@ -52,32 +52,32 @@ impl MemoryChunk {
 /// little-endian representation.
 pub fn fe_to_u256<F>(f: F) -> U256
 where
-    F: PrimeField<Repr = [u8; 32]>,
+    F: PrimeField<Repr = halo2_proofs::halo2curves::serde::Repr<32>>,
 {
-    U256::from_le_bytes(f.to_repr())
+    U256::from_le_bytes(f.to_repr().inner().clone())
 }
 
 /// Convert a [`U256`] into a [`PrimeField`].
 pub fn u256_to_fe<F>(value: U256) -> F
 where
-    F: PrimeField<Repr = [u8; 32]>,
+    F: PrimeField<Repr = halo2_proofs::halo2curves::serde::Repr<32>>,
 {
     let value = value % modulus::<F>();
-    F::from_repr(value.to_le_bytes::<32>()).unwrap()
+    F::from_repr(value.to_le_bytes::<32>().into()).unwrap()
 }
 
 /// Returns modulus of [`PrimeField`] as [`U256`].
 pub fn modulus<F>() -> U256
 where
-    F: PrimeField<Repr = [u8; 32]>,
+    F: PrimeField<Repr = halo2_proofs::halo2curves::serde::Repr<32>>,
 {
-    U256::from_le_bytes((-F::ONE).to_repr()) + U256::from(1)
+    U256::from_le_bytes((-F::ONE).to_repr().into()) + U256::from(1)
 }
 
 /// Encode instances and proof into calldata.
 pub fn encode_calldata<F>(instances: &[Vec<F>], proof: &[u8]) -> Vec<u8>
 where
-    F: PrimeField<Repr = [u8; 32]>,
+    F: PrimeField<Repr = halo2_proofs::halo2curves::serde::Repr<32>>,
 {
     iter::empty()
         .chain(

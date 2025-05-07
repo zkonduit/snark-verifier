@@ -69,8 +69,8 @@ impl EvmLoader {
     /// Initialize a [`EvmLoader`] with base and scalar field.
     pub fn new<Base, Scalar>() -> Rc<Self>
     where
-        Base: PrimeField<Repr = [u8; 0x20]>,
-        Scalar: PrimeField<Repr = [u8; 32]>,
+        Base: PrimeField<Repr = halo2_proofs::halo2curves::serde::Repr<32>>,
+        Scalar: PrimeField<Repr = halo2_proofs::halo2curves::serde::Repr<32>>,
     {
         let base_modulus = modulus::<Base>();
         let scalar_modulus = modulus::<Scalar>();
@@ -500,7 +500,7 @@ impl PartialEq for EcPoint {
 impl<C> LoadedEcPoint<C> for EcPoint
 where
     C: CurveAffine,
-    C::ScalarExt: PrimeField<Repr = [u8; 0x20]>,
+    C::ScalarExt: PrimeField<Repr = halo2_proofs::halo2curves::serde::Repr<32>>,
 {
     type Loader = Rc<EvmLoader>;
 
@@ -654,7 +654,7 @@ impl PartialEq for Scalar {
     }
 }
 
-impl<F: PrimeField<Repr = [u8; 0x20]>> LoadedScalar<F> for Scalar {
+impl<F: PrimeField<Repr = halo2_proofs::halo2curves::serde::Repr<32>>> LoadedScalar<F> for Scalar {
     type Loader = Rc<EvmLoader>;
 
     fn loader(&self) -> &Self::Loader {
@@ -665,7 +665,7 @@ impl<F: PrimeField<Repr = [u8; 0x20]>> LoadedScalar<F> for Scalar {
 impl<C> EcPointLoader<C> for Rc<EvmLoader>
 where
     C: CurveAffine,
-    C::Scalar: PrimeField<Repr = [u8; 0x20]>,
+    C::Scalar: PrimeField<Repr = halo2_proofs::halo2curves::serde::Repr<32>>,
 {
     type LoadedEcPoint = EcPoint;
 
@@ -695,7 +695,7 @@ where
     }
 }
 
-impl<F: PrimeField<Repr = [u8; 0x20]>> ScalarLoader<F> for Rc<EvmLoader> {
+impl<F: PrimeField<Repr = halo2_proofs::halo2curves::serde::Repr<32>>> ScalarLoader<F> for Rc<EvmLoader> {
     type LoadedScalar = Scalar;
 
     fn load_const(&self, value: &F) -> Scalar {
@@ -902,7 +902,7 @@ impl<F: PrimeField<Repr = [u8; 0x20]>> ScalarLoader<F> for Rc<EvmLoader> {
 impl<C> Loader<C> for Rc<EvmLoader>
 where
     C: CurveAffine,
-    C::Scalar: PrimeField<Repr = [u8; 0x20]>,
+    C::Scalar: PrimeField<Repr = halo2_proofs::halo2curves::serde::Repr<32>>,
 {
     #[cfg(test)]
     fn start_cost_metering(&self, identifier: &str) {
